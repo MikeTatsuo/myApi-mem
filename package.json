@@ -34,7 +34,7 @@
     "pretemp": "rm -Rf ./temp",
     "temp": "mkdir ./temp",
     "test": "npm run test-mocha",
-    "test-mocha": "mocha -r ts-node/register ./test/* ./test/**/*",
+    "test-mocha": "mocha -r ts-node/register ./test/* ./test/**/* --exit",
     "test-dev": "nodemon --watch . --ext ts --exec \"npm run test-mocha\"",
     "prerebuild-node_modules": "npm run clean-node_modules",
     "rebuild-node_modules": "npm i"
