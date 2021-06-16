@@ -5,5 +5,8 @@ export * from './empty.object';
 export * from './encoding';
 export * from './enum.of.types';
 export * from './error.msg';
+export * from './history';
 export * from './jwt.request';
+export * from './task.time';
+export * from './task';
 export * from './user';
