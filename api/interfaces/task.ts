@@ -5,5 +5,5 @@ export interface Task extends BaseObject {
 	finished: boolean;
 	name: string;
 	observation?: string;
-	timeTable: TaskTime[];
+	timeTable?: TaskTime[];
 }
