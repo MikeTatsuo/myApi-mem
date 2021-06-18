@@ -2,7 +2,15 @@ import express, { Application, Request, Response } from 'express';
 import * as http from 'http';
 import env from 'dotenv';
 import { RoutesConfig } from './api/common';
-import { AuthRoutes, UsersRoutes } from './api/routes';
+import {
+	AuthRoutes,
+	HistoriesRoutes,
+	HistoryRoutes,
+	TaskRoutes,
+	TasksRoutes,
+	UserRoutes,
+	UsersRoutes,
+} from './api/routes';
 
 env.config();
 
@@ -13,8 +21,13 @@ const routes: RoutesConfig[] = [];
 
 app.use(express.json());
 
-routes.push(new UsersRoutes(app));
 routes.push(new AuthRoutes(app));
+routes.push(new HistoriesRoutes(app));
+routes.push(new HistoryRoutes(app));
+routes.push(new TaskRoutes(app));
+routes.push(new TasksRoutes(app));
+routes.push(new UserRoutes(app));
+routes.push(new UsersRoutes(app));
 
 app.get('/', (req: Request, res: Response) => {
 	res.status(200).send({ msg: `Hello World! Our server is running at port ${port}` });
