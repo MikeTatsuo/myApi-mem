@@ -26,8 +26,6 @@ export class TaskRoutes extends RoutesConfig implements configureRoutes {
 			taskController.removeTask,
 		]);
 
-		this.app.get(task, [jwtMiddleware.validJWTNeeded, taskController.listTasks]);
-
 		this.app.get(`${task}/:taskId`, [
 			jwtMiddleware.validJWTNeeded,
 			taskMiddleware.validateIdDoesExist,

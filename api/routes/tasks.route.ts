@@ -1,21 +1,21 @@
 import { Application } from 'express';
 import { Endpoints, RoutesConfig } from '../common';
-import { UsersController } from '../controllers';
+import { TasksController } from '../controllers';
 import { configureRoutes } from '../interfaces';
 import { JwtMiddleware } from '../middleware';
 
-const { users } = Endpoints;
+const { tasks } = Endpoints;
 
-export class UsersRoutes extends RoutesConfig implements configureRoutes {
+export class TasksRoutes extends RoutesConfig implements configureRoutes {
 	constructor(app: Application) {
-		super(app, 'UsersRoute');
+		super(app, 'TaskRoute');
 		this.configureRoutes();
 	}
 
 	configureRoutes(): void {
-		const usersController = new UsersController();
+		const taskController = new TasksController();
 		const jwtMiddleware = JwtMiddleware.getInstance();
 
-		this.app.get(users, [jwtMiddleware.validJWTNeeded, usersController.listUsers]);
+		this.app.get(tasks, [jwtMiddleware.validJWTNeeded, taskController.listTasks]);
 	}
 }
