@@ -19,10 +19,10 @@ export class UsersService implements CRUD<User> {
 		return this.dao.add<User>(resource);
 	}
 
-	deleteById(userId: string): BaseObject {
-		const resourceId = Number(userId);
+	deleteById(resourceId: string): BaseObject {
+		const userId = Number(resourceId);
 
-		return this.dao.removeById(resourceId);
+		return this.dao.removeById(userId);
 	}
 
 	list(limit = 20, page = 1): User[] {
