@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
-import { ErrorMsg, Task } from '../interfaces';
+import { EnumOfTypes, ErrorMsg, Task } from '../interfaces';
 import { TasksService } from '../services';
 import { ErrorMsgs, HttpCodes } from '../common';
 import { Methods } from '../common';
@@ -7,6 +7,7 @@ import { Methods } from '../common';
 const { invalidBody, missingParamId, taskExist, taskNotFound, unableToDeleteTask } = ErrorMsgs;
 const { BAD_REQUEST, CONFLICT, NOT_FOUND } = HttpCodes;
 const { DELETE, PUT } = Methods;
+const { BOOLEAN } = EnumOfTypes;
 
 export class TasksMiddleware {
 	private static instance: TasksMiddleware;
@@ -45,7 +46,7 @@ export class TasksMiddleware {
 	validateRequiredTaskBodyFields({ body }: Request, res: Response, next: NextFunction): void {
 		const { finished, name } = body;
 
-		if (body && name && finished) {
+		if (body && name && typeof finished === BOOLEAN) {
 			next();
 		} else {
 			let errorText = 'Missing required field';
