@@ -6,6 +6,7 @@ export * from './encoding';
 export * from './enum.of.types';
 export * from './error.msg';
 export * from './history';
+export * from './in.memory.dao';
 export * from './jwt.request';
 export * from './task.time';
 export * from './task';
