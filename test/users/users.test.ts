@@ -3,24 +3,14 @@ import { agent as request, Response } from 'supertest';
 import { expect } from 'chai';
 import { EnumOfTypes } from '../../api/interfaces';
 import { Endpoints, HttpCodes } from '../../api/common';
+import { UserMock } from '../../mock';
 
 let firstUserId = 0;
 let secondUserId = 0;
 
-const firstUserBody = {
-	username: 'Username 1',
-	email: 'email@1.com',
-	password: 'Password1',
-};
-
-const secondUserBody = {
-	username: 'Username 2',
-	email: 'email@2.com',
-	password: 'Password2',
-};
-
 const header = { Authorization: 'Bearer ' };
-const { email, password } = firstUserBody;
+const { firstUser, secondUser } = UserMock;
+const { username, email, password } = firstUser;
 const { ARRAY, NUMBER, OBJECT, STRING } = EnumOfTypes;
 const { users, user, auth } = Endpoints;
 const { CREATED, OK } = HttpCodes;
@@ -30,7 +20,7 @@ describe('users.test', () => {
 		it('should return 201 - Created', (done) => {
 			request(server)
 				.post(user)
-				.send(firstUserBody)
+				.send(firstUser)
 				.then(({ status, body }: Response) => {
 					const { id } = body;
 
@@ -38,6 +28,11 @@ describe('users.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
+					expect(body.username).to.be.an(STRING);
+					expect(body.username).to.be.equal(username);
+					expect(body.email).to.be.an(STRING);
+					expect(body.email).to.be.equal(email);
+					expect(body).not.haveOwnProperty('password');
 
 					firstUserId = id;
 
@@ -55,7 +50,7 @@ describe('users.test', () => {
 				.then(({ body, status }: Response) => {
 					const { accessToken } = body;
 
-					expect(status).to.be.equal(CREATED);
+					expect(status).to.equal(CREATED);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(accessToken).to.be.an(STRING);
@@ -85,9 +80,9 @@ describe('users.test', () => {
 
 					expect(id).to.be.an(NUMBER);
 					expect(username).to.be.an(STRING);
-					expect(username).to.be.equals(firstUserBody.username);
+					expect(username).to.be.equal(firstUser.username);
 					expect(email).to.be.an(STRING);
-					expect(email).to.be.equals(firstUserBody.email);
+					expect(email).to.be.equal(firstUser.email);
 					expect(popedUser).not.haveOwnProperty('password');
 
 					done();
@@ -97,12 +92,10 @@ describe('users.test', () => {
 	});
 
 	describe(`POST ${user}`, () => {
-		const { username, email } = secondUserBody;
-
-		it('should return 201 - Created', (done) => {
+		it('should return 201 - Created - 2nd User', (done) => {
 			request(server)
 				.post(user)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ status, body }: Response) => {
 					const { id } = body;
 
@@ -111,9 +104,9 @@ describe('users.test', () => {
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(username);
+					expect(body.username).to.be.equal(secondUser.username);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(email);
+					expect(body.email).to.be.equal(secondUser.email);
 					expect(body).not.haveOwnProperty('password');
 
 					secondUserId = id;
@@ -154,7 +147,7 @@ describe('users.test', () => {
 					const { status, body } = res;
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
@@ -174,7 +167,7 @@ describe('users.test', () => {
 					const { status, body } = res;
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
@@ -195,7 +188,7 @@ describe('users.test', () => {
 				.then((res: Response) => {
 					const { status, body } = res;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).to.be.an(ARRAY);
 					expect(body).to.be.empty;
 

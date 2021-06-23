@@ -24,7 +24,7 @@ let jwt = {
 
 const header = { Authorization: 'Bearer ' };
 const { username, email, password } = firstUserBody;
-const { auth, authRefresh, users, user } = Endpoints;
+const { auth, authRefresh, user } = Endpoints;
 const { OBJECT, NUMBER, STRING } = EnumOfTypes;
 const { BAD_REQUEST, CREATED, FORBIDDEN, OK, UNAUTHORIZED } = HttpCodes;
 const {
@@ -309,7 +309,7 @@ describe('auth.test', () => {
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).to.not.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);

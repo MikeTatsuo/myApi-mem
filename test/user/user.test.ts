@@ -3,31 +3,15 @@ import { agent as request, Response } from 'supertest';
 import { expect } from 'chai';
 import { EnumOfTypes } from '../../api/interfaces';
 import { Endpoints, ErrorMsgs, HttpCodes } from '../../api/common';
+import { UserMock } from '../../mock';
 
 let firstUserId = 0;
 let secondUserId = 0;
 const invalidUserId = 0;
 
-const firstUserBody = {
-	username: 'Username 1',
-	email: 'email@1.com',
-	password: 'Password1',
-};
-
-const secondUserBody = {
-	username: 'Username 2',
-	email: 'email@2.com',
-	password: 'Password2',
-};
-
-const thirdUserBody = {
-	username: 'Username 3',
-	email: 'email@3.com',
-	password: 'Password3',
-};
-
 const header = { Authorization: 'Bearer ' };
-const { username, email, password } = firstUserBody;
+const { firstUser, secondUser, thirdUser } = UserMock;
+const { username, email, password } = firstUser;
 const { ARRAY, NUMBER, OBJECT, STRING } = EnumOfTypes;
 const { auth, user, users } = Endpoints;
 const { BAD_REQUEST, CREATED, FORBIDDEN, NOT_FOUND, OK, UNAUTHORIZED } = HttpCodes;
@@ -53,7 +37,7 @@ describe('user.test', () => {
 		it('should return 201 - Created', (done) => {
 			request(server)
 				.post(user)
-				.send(firstUserBody)
+				.send(firstUser)
 				.then(({ status, body }: Response) => {
 					const { id } = body;
 
@@ -77,11 +61,11 @@ describe('user.test', () => {
 		it('should return 400 - Bad Request - username exists', (done) => {
 			request(server)
 				.post(user)
-				.send({ username, email: secondUserBody.email, password: secondUserBody.password })
+				.send({ username, email: secondUser.email, password: secondUser.password })
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -95,11 +79,11 @@ describe('user.test', () => {
 		it('should return 400 - Bad Request - email exists', (done) => {
 			request(server)
 				.post(user)
-				.send({ username: secondUserBody.username, email, password: secondUserBody.password })
+				.send({ username: secondUser.username, email, password: secondUser.password })
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -117,7 +101,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -135,7 +119,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -153,7 +137,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -171,7 +155,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -189,7 +173,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -207,7 +191,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -225,7 +209,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -243,12 +227,13 @@ describe('user.test', () => {
 				.post(auth)
 				.send({ email, password })
 				.then(({ body, status }: Response) => {
-					const { accessToken } = body;
+					const { accessToken, refreshToken } = body;
 
-					expect(status).to.be.equal(CREATED);
+					expect(status).to.equal(CREATED);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(accessToken).to.be.an(STRING);
+					expect(refreshToken).to.be.an(STRING);
 
 					header.Authorization += accessToken;
 					done();
@@ -264,14 +249,14 @@ describe('user.test', () => {
 				.set(header)
 				.send()
 				.then(({ body, status }: Response) => {
-					// const { id, username, email } = body;
-
 					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(body.id).to.be.an(NUMBER);
-					expect(body.username).to.be.equals(username);
-					expect(body.email).to.be.equals(email);
+					expect(body.username).to.be.an(STRING);
+					expect(body.username).to.be.equal(username);
+					expect(body.email).to.be.an(STRING);
+					expect(body.email).to.be.equal(email);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -329,7 +314,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(userNotFound);
+					expect(error).to.be.equal(userNotFound);
 
 					done();
 				})
@@ -341,7 +326,7 @@ describe('user.test', () => {
 		it('should return 201 - Created - 2nd user', (done) => {
 			request(server)
 				.post(user)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ status, body }: Response) => {
 					const { id } = body;
 
@@ -350,9 +335,9 @@ describe('user.test', () => {
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(secondUserBody.username);
+					expect(body.username).to.be.equal(secondUser.username);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(secondUserBody.email);
+					expect(body.email).to.be.equal(secondUser.email);
 					expect(body).not.haveOwnProperty('password');
 
 					secondUserId = id;
@@ -368,19 +353,19 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
 				.set(header)
-				.send(thirdUserBody)
+				.send(thirdUser)
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(id).to.be.equal(firstUserId);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equals(thirdUserBody.username);
+					expect(body.username).to.be.equal(thirdUser.username);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equals(thirdUserBody.email);
+					expect(body.email).to.be.equal(thirdUser.email);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -392,19 +377,19 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ username, email: thirdUserBody.email, password: thirdUserBody.password })
+				.send({ username, email: thirdUser.email, password: thirdUser.password })
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(id).to.be.equal(firstUserId);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equals(username);
+					expect(body.username).to.be.equal(username);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equals(thirdUserBody.email);
+					expect(body.email).to.be.equal(thirdUser.email);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -416,19 +401,19 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ username, email, password: thirdUserBody.password })
+				.send({ username, email, password: thirdUser.password })
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(id).to.be.equal(firstUserId);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equals(username);
+					expect(body.username).to.be.equal(username);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equals(email);
+					expect(body.email).to.be.equal(email);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -440,7 +425,7 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
 				.set({ Authorization: `${header.Authorization}123` })
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -458,7 +443,7 @@ describe('user.test', () => {
 		it('should return 401 - Unauthorized - no JWT set', (done) => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -477,11 +462,11 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ username: secondUserBody.username, email, password: thirdUserBody.password })
+				.send({ username: secondUser.username, email, password: thirdUser.password })
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -496,11 +481,11 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ username, email: secondUserBody.email, password: thirdUserBody.password })
+				.send({ username, email: secondUser.email, password: thirdUser.password })
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -515,7 +500,7 @@ describe('user.test', () => {
 			request(server)
 				.put(user)
 				.set(header)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -523,7 +508,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(missingParamId);
+					expect(error).to.be.equal(missingParamId);
 
 					done();
 				})
@@ -538,7 +523,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -557,7 +542,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -576,7 +561,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -595,7 +580,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -614,7 +599,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -633,7 +618,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -652,7 +637,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -667,7 +652,7 @@ describe('user.test', () => {
 			request(server)
 				.put(`${user}/${invalidUserId}`)
 				.set(header)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then((res: Response) => {
 					const { status, body } = res;
 					const { error } = body;
@@ -676,7 +661,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(userNotFound);
+					expect(error).to.be.equal(userNotFound);
 
 					done();
 				})
@@ -689,11 +674,11 @@ describe('user.test', () => {
 			request(server)
 				.patch(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ username: thirdUserBody.username })
+				.send({ username: thirdUser.username })
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
@@ -701,7 +686,7 @@ describe('user.test', () => {
 					expect(body.email).to.be.an(STRING);
 					expect(body.email).to.be.equal(email);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equals(thirdUserBody.username);
+					expect(body.username).to.be.equal(thirdUser.username);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -713,19 +698,19 @@ describe('user.test', () => {
 			request(server)
 				.patch(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ email: thirdUserBody.email })
+				.send({ email: thirdUser.email })
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(id).to.be.equal(firstUserId);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(thirdUserBody.email);
+					expect(body.email).to.be.equal(thirdUser.email);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equals(thirdUserBody.username);
+					expect(body.username).to.be.equal(thirdUser.username);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -741,15 +726,15 @@ describe('user.test', () => {
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
 					expect(id).to.be.equal(firstUserId);
 					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(thirdUserBody.email);
+					expect(body.email).to.be.equal(thirdUser.email);
 					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equals(thirdUserBody.username);
+					expect(body.username).to.be.equal(thirdUser.username);
 					expect(body).not.haveOwnProperty('password');
 
 					done();
@@ -761,7 +746,7 @@ describe('user.test', () => {
 			request(server)
 				.patch(`${user}/${firstUserId}`)
 				.set({ Authorization: `${header.Authorization}123` })
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -779,7 +764,7 @@ describe('user.test', () => {
 		it('should return 401 - Unauthorized - no JWT set', (done) => {
 			request(server)
 				.patch(`${user}/${firstUserId}`)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -806,7 +791,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(invalidBody);
+					expect(error).to.be.equal(invalidBody);
 
 					done();
 				})
@@ -817,11 +802,11 @@ describe('user.test', () => {
 			request(server)
 				.patch(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ username: secondUserBody.username })
+				.send({ username: secondUser.username })
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -836,11 +821,11 @@ describe('user.test', () => {
 			request(server)
 				.patch(`${user}/${firstUserId}`)
 				.set(header)
-				.send({ email: secondUserBody.email })
+				.send({ email: secondUser.email })
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -859,7 +844,7 @@ describe('user.test', () => {
 				.then(({ status, body }: Response) => {
 					const { error } = body;
 
-					expect(status).to.be.equal(BAD_REQUEST);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
@@ -882,7 +867,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(missingParamId);
+					expect(error).to.be.equal(missingParamId);
 
 					done();
 				})
@@ -902,7 +887,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(userNotFound);
+					expect(error).to.be.equal(userNotFound);
 
 					done();
 				})
@@ -920,7 +905,7 @@ describe('user.test', () => {
 					const { status, body } = res;
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
@@ -935,7 +920,7 @@ describe('user.test', () => {
 			request(server)
 				.delete(`${user}/${firstUserId}`)
 				.set({ Authorization: `${header.Authorization}123` })
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -953,7 +938,7 @@ describe('user.test', () => {
 		it('should return 401 - Unauthorized - no JWT set', (done) => {
 			request(server)
 				.delete(`${user}/${firstUserId}`)
-				.send(secondUserBody)
+				.send(secondUser)
 				.then(({ body, status }: Response) => {
 					const { error } = body;
 
@@ -977,7 +962,7 @@ describe('user.test', () => {
 					const { status, body } = res;
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
@@ -1000,7 +985,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(missingParamId);
+					expect(error).to.be.equal(missingParamId);
 
 					done();
 				})
@@ -1020,7 +1005,7 @@ describe('user.test', () => {
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(error).to.be.an(STRING);
-					expect(error).to.be.equals(userNotFound);
+					expect(error).to.be.equal(userNotFound);
 
 					done();
 				})
@@ -1037,7 +1022,7 @@ describe('user.test', () => {
 				.then((res: Response) => {
 					const { status, body } = res;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).to.be.an(ARRAY);
 					expect(body).to.be.empty;
 
