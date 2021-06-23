@@ -1,12 +1,12 @@
-import { GenericInMemoryDao } from '../dao';
+import { UserDao } from '../dao';
 import { CRUD, BaseObject, User } from '../interfaces';
 
 export class UsersService implements CRUD<User> {
 	private static instance: UsersService;
-	dao: GenericInMemoryDao;
+	userDao: UserDao;
 
 	constructor() {
-		this.dao = GenericInMemoryDao.getInstance();
+		this.userDao = UserDao.getInstance();
 	}
 
 	static getInstance(): UsersService {
@@ -16,17 +16,17 @@ export class UsersService implements CRUD<User> {
 	}
 
 	create(resource: User): User {
-		return this.dao.add<User>(resource);
+		return this.userDao.add<User>(resource);
 	}
 
 	deleteById(resourceId: string): BaseObject {
 		const userId = Number(resourceId);
 
-		return this.dao.removeById(userId);
+		return this.userDao.removeById(userId);
 	}
 
 	list(limit = 20, page = 1): User[] {
-		return this.dao.getList<User>(limit, page);
+		return this.userDao.getList<User>(limit, page);
 	}
 
 	patchById(resourceId: string, resource: User): User {
@@ -38,17 +38,17 @@ export class UsersService implements CRUD<User> {
 		if (email) resource = { ...resource, email };
 		if (password) resource = { ...resource, password };
 
-		return this.dao.patchById<User>(userId, resource);
+		return this.userDao.patchById<User>(userId, resource);
 	}
 
 	getById(resourceId: string): User {
 		const userId = Number(resourceId);
 
-		return this.dao.getById<User>(userId);
+		return this.userDao.getById<User>(userId);
 	}
 
 	getByParam(param: string, value: unknown): User {
-		return this.dao.getByParams<User>(param, value);
+		return this.userDao.getByParams<User>(param, value);
 	}
 
 	updateById(resourceId: string, resource: User): User {
@@ -56,7 +56,7 @@ export class UsersService implements CRUD<User> {
 		const { id, username, email, password } = resource;
 		resource = { id: Number(id), username, email, password };
 
-		return this.dao.putById<User>(userId, resource);
+		return this.userDao.putById<User>(userId, resource);
 	}
 
 	formatUser(user: User): User {
