@@ -1,12 +1,12 @@
-import { GenericInMemoryDao } from '../dao';
+import { HistoryDao } from '../dao';
 import { CRUD, BaseObject, History } from '../interfaces';
 
 export class HistoriesService implements CRUD<History> {
 	private static instance: HistoriesService;
-	dao: GenericInMemoryDao;
+	historyDao: HistoryDao;
 
 	constructor() {
-		this.dao = GenericInMemoryDao.getInstance();
+		this.historyDao = HistoryDao.getInstance();
 	}
 
 	static getInstance(): HistoriesService {
@@ -16,17 +16,17 @@ export class HistoriesService implements CRUD<History> {
 	}
 
 	create(resource: History): History {
-		return this.dao.add<History>(resource);
+		return this.historyDao.add<History>(resource);
 	}
 
 	deleteById(resourceId: string): BaseObject {
 		const historyId = Number(resourceId);
 
-		return this.dao.removeById(historyId);
+		return this.historyDao.removeById(historyId);
 	}
 
 	list(limit = 20, page = 1): History[] {
-		return this.dao.getList<History>(limit, page);
+		return this.historyDao.getList<History>(limit, page);
 	}
 
 	patchById(resourceId: string, resource: History): History {
@@ -38,17 +38,17 @@ export class HistoriesService implements CRUD<History> {
 		if (finished) resource = { ...resource, finished };
 		if (tasks?.length) resource = { ...resource, tasks };
 
-		return this.dao.patchById<History>(historyId, resource);
+		return this.historyDao.patchById<History>(historyId, resource);
 	}
 
 	getById(resourceId: string): History {
 		const historyId = Number(resourceId);
 
-		return this.dao.getById<History>(historyId);
+		return this.historyDao.getById<History>(historyId);
 	}
 
 	getByParam(param: string, value: unknown): History {
-		return this.dao.getByParams<History>(param, value);
+		return this.historyDao.getByParams<History>(param, value);
 	}
 
 	updateById(resourceId: string, resource: History): History {
@@ -56,7 +56,7 @@ export class HistoriesService implements CRUD<History> {
 		const { id, name, finished, tasks } = resource;
 		resource = { id: Number(id), name, finished, tasks };
 
-		return this.dao.putById<History>(historyId, resource);
+		return this.historyDao.putById<History>(historyId, resource);
 	}
 
 	formatHistory(history: History): History {
