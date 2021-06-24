@@ -1,5 +1,4 @@
 import { HttpCodes } from '../common';
-import { Task } from '../interfaces';
 import { Request, Response } from 'express';
 import { TasksService } from '../services';
 
@@ -9,41 +8,36 @@ export class TasksController {
 	createTask({ body }: Request, res: Response): void {
 		const tasksService = TasksService.getInstance();
 		const createdTask = tasksService.create(body);
-		const formattedTask = tasksService.formatTask(createdTask);
 
-		res.status(CREATED).send(formattedTask);
+		res.status(CREATED).send(createdTask);
 	}
 
 	getTaskById({ params }: Request, res: Response): void {
 		const tasksService = TasksService.getInstance();
 		const retrievedTask = tasksService.getById(params.taskId);
-		const formattedTask = tasksService.formatTask(retrievedTask);
 
-		res.status(OK).send(formattedTask);
+		res.status(OK).send(retrievedTask);
 	}
 
 	listTasks(req: Request, res: Response): void {
 		const tasksService = TasksService.getInstance();
 		const tasksList = tasksService.list();
-		const formattedList = tasksList.map((task: Task) => tasksService.formatTask(task));
 
-		res.status(OK).send(formattedList);
+		res.status(OK).send(tasksList);
 	}
 
 	patch({ body, params }: Request, res: Response): void {
 		const tasksService = TasksService.getInstance();
 		const patchedTask = tasksService.patchById(params.taskId, body);
-		const formattedTask = tasksService.formatTask(patchedTask);
 
-		res.status(OK).send(formattedTask);
+		res.status(OK).send(patchedTask);
 	}
 
 	put({ body, params }: Request, res: Response): void {
 		const tasksService = TasksService.getInstance();
 		const updatedUser = tasksService.updateById(params.taskId, body);
-		const formattedTask = tasksService.formatTask(updatedUser);
 
-		res.status(OK).send(formattedTask);
+		res.status(OK).send(updatedUser);
 	}
 
 	removeTask({ params }: Request, res: Response): void {

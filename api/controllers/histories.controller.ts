@@ -1,5 +1,4 @@
 import { HttpCodes } from '../common';
-import { History } from '../interfaces';
 import { Request, Response } from 'express';
 import { HistoriesService } from '../services';
 
@@ -9,43 +8,36 @@ export class HistoriesController {
 	createHistory({ body }: Request, res: Response): void {
 		const historiesService = HistoriesService.getInstance();
 		const createdHistory = historiesService.create(body);
-		const formattedHistory = historiesService.formatHistory(createdHistory);
 
-		res.status(CREATED).send(formattedHistory);
+		res.status(CREATED).send(createdHistory);
 	}
 
 	getHistoryById({ params }: Request, res: Response): void {
 		const historiesService = HistoriesService.getInstance();
 		const retrievedHistory = historiesService.getById(params.historyId);
-		const formattedHistory = historiesService.formatHistory(retrievedHistory);
 
-		res.status(OK).send(formattedHistory);
+		res.status(OK).send(retrievedHistory);
 	}
 
 	listHistories(req: Request, res: Response): void {
 		const historiesService = HistoriesService.getInstance();
 		const historyList = historiesService.list();
-		const formattedList = historyList.map((history: History) =>
-			historiesService.formatHistory(history)
-		);
 
-		res.status(OK).send(formattedList);
+		res.status(OK).send(historyList);
 	}
 
 	patch({ body, params }: Request, res: Response): void {
 		const historiesService = HistoriesService.getInstance();
 		const patchedHistory = historiesService.patchById(params.historyId, body);
-		const formattedHistory = historiesService.formatHistory(patchedHistory);
 
-		res.status(OK).send(formattedHistory);
+		res.status(OK).send(patchedHistory);
 	}
 
 	put({ body, params }: Request, res: Response): void {
 		const historiesService = HistoriesService.getInstance();
 		const updatedHistory = historiesService.updateById(params.historyId, body);
-		const formattedHistory = historiesService.formatHistory(updatedHistory);
 
-		res.status(OK).send(formattedHistory);
+		res.status(OK).send(updatedHistory);
 	}
 
 	removeUser({ params }: Request, res: Response): void {
