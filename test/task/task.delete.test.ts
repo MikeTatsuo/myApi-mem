@@ -1,17 +1,27 @@
 import server from '../../server';
 import { agent as request, Response } from 'supertest';
-import { assert, expect } from 'chai';
-import { Endpoints, HttpCodes } from '../../api/common';
+import { expect } from 'chai';
+import { Endpoints, ErrorMsgs, HttpCodes } from '../../api/common';
 import { EnumOfTypes } from '../../api/interfaces';
 import { TaskMock, UserMock } from '../../mock';
 
 const header = { Authorization: 'Bearer ' };
 const { auth, task, user } = Endpoints;
 const { firstUser } = UserMock;
-const { CREATED, OK } = HttpCodes;
+const { BAD_REQUEST, CREATED, FORBIDDEN, OK, UNAUTHORIZED } = HttpCodes;
 const { ARRAY, BOOLEAN, NUMBER, OBJECT, STRING } = EnumOfTypes;
 const { username, email, password } = firstUser;
 const { firstTask, secondTask, thirdTask } = TaskMock;
+const {
+	authRequired,
+	invalidBody,
+	invalidSignature,
+	missingFinished,
+	missingName,
+	missingNameAndFinished,
+	taskExist,
+} = ErrorMsgs;
+const { name, finished, historyId, observation } = firstTask;
 
 let firstUserId: number;
 let firstTaskId: number;
@@ -26,7 +36,7 @@ beforeEach(() => {
 	global.Date = MockDate as DateConstructor;
 });
 
-describe('task.test', () => {
+describe('task.delete.test', () => {
 	describe(`POST ${user}`, () => {
 		it('should return 201 - Created', (done) => {
 			request(server)
@@ -104,9 +114,26 @@ describe('task.test', () => {
 		});
 	});
 
-	// describe(`DELETE ${task}/:taskId`, () => {
+	describe(`DELETE ${task}/:taskId`, () => {
+		it('should return 200 - Ok', (done) => {
+			request(server)
+				.delete(`${task}/${firstTaskId}`)
+				.set(header)
+				.send()
+				.then(({ body, status }: Response) => {
+					const { id } = body;
 
-	// })
+					expect(status).to.equal(OK);
+					expect(body).to.not.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(id).to.be.an(NUMBER);
+					expect(id).to.be.equal(firstTaskId);
+
+					done();
+				})
+				.catch(done);
+		});
+	});
 
 	describe(`DELETE ${user}/:userId`, () => {
 		it('should return 200 - Ok', (done) => {
