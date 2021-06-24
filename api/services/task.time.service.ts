@@ -1,36 +1,36 @@
-import { TimeTableDao } from '../dao';
+import { TaskTimeDao } from '../dao';
 import { CRUD, BaseObject, TaskTime } from '../interfaces';
 
-export class TimeTableService implements CRUD<TaskTime> {
-	private static instance: TimeTableService;
-	timeTableDao: TimeTableDao;
+export class TaskTimeService implements CRUD<TaskTime> {
+	private static instance: TaskTimeService;
+	taskTimeDao: TaskTimeDao;
 
 	constructor() {
-		this.timeTableDao = TimeTableDao.getInstance();
+		this.taskTimeDao = TaskTimeDao.getInstance();
 	}
 
-	static getInstance(): TimeTableService {
-		if (!TimeTableService.instance) TimeTableService.instance = new TimeTableService();
+	static getInstance(): TaskTimeService {
+		if (!TaskTimeService.instance) TaskTimeService.instance = new TaskTimeService();
 
-		return TimeTableService.instance;
+		return TaskTimeService.instance;
 	}
 
 	create(resource: TaskTime): TaskTime {
-		return this.timeTableDao.add<TaskTime>(resource);
+		return this.taskTimeDao.add<TaskTime>(resource);
 	}
 
 	deleteById(resouceId: string): BaseObject {
 		const taskId = Number(resouceId);
 
-		return this.timeTableDao.removeById(taskId);
+		return this.taskTimeDao.removeById(taskId);
 	}
 
 	list(): TaskTime[] {
-		return this.timeTableDao.getList<TaskTime>();
+		return this.taskTimeDao.getList<TaskTime>();
 	}
 
 	listByTaskId(taskId: number): TaskTime[] {
-		const timeTableList = this.timeTableDao.getList<TaskTime>();
+		const timeTableList = this.taskTimeDao.getList<TaskTime>();
 		return timeTableList.filter((taskTime: TaskTime) => taskTime.taskId === taskId);
 	}
 
@@ -43,17 +43,17 @@ export class TimeTableService implements CRUD<TaskTime> {
 		if (start) resource = { ...resource, start };
 		if (taskId) resource = { ...resource, taskId };
 
-		return this.timeTableDao.patchById<TaskTime>(timeTableId, resource);
+		return this.taskTimeDao.patchById<TaskTime>(timeTableId, resource);
 	}
 
 	getById(resourceId: string): TaskTime {
 		const taskId = Number(resourceId);
 
-		return this.timeTableDao.getById<TaskTime>(taskId);
+		return this.taskTimeDao.getById<TaskTime>(taskId);
 	}
 
 	getByParam(param: string, value: unknown): TaskTime {
-		return this.timeTableDao.getByParams<TaskTime>(param, value);
+		return this.taskTimeDao.getByParams<TaskTime>(param, value);
 	}
 
 	updateById(resourceId: string, resource: TaskTime): TaskTime {
@@ -61,7 +61,7 @@ export class TimeTableService implements CRUD<TaskTime> {
 		const { id, end, start, taskId } = resource;
 		resource = { id: Number(id), end, start, taskId };
 
-		return this.timeTableDao.putById<TaskTime>(timeTableId, resource);
+		return this.taskTimeDao.putById<TaskTime>(timeTableId, resource);
 	}
 
 	formatTimeTable(task: TaskTime): TaskTime {
