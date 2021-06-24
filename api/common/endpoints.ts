@@ -6,6 +6,7 @@ export const Endpoints = {
 	root: '/',
 	task: '/task',
 	tasks: '/tasks',
+	timeTask: '/task-time',
 	users: '/users',
 	user: '/user',
 };
