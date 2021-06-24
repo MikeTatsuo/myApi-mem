@@ -94,18 +94,7 @@ describe('task.test', () => {
 					expect(observation).to.be.an(STRING);
 					expect(observation).to.be.equal(firstTask.observation);
 					expect(timeTable).to.be.an(ARRAY);
-					expect(timeTable.length).to.be.equal(1);
-
-					const time = timeTable.pop();
-					const { end, start, taskId } = time;
-
-					expect(time.id).to.be.an(NUMBER);
-					expect(end).not.to.be.empty;
-					assert.deepEqual(new Date(end), new Date(firstTask.timeTable[0].end));
-					expect(start).not.to.be.empty;
-					assert.deepEqual(new Date(start), new Date(firstTask.timeTable[0].start));
-					expect(taskId).to.be.an(NUMBER);
-					expect(taskId).to.be.equal(firstTask.timeTable[0].taskId);
+					expect(timeTable.length).to.be.equal(0);
 
 					firstTaskId = id;
 
