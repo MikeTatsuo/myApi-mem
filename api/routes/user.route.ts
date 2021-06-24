@@ -46,6 +46,7 @@ export class UserRoutes extends RoutesConfig implements configureRoutes {
 		]);
 
 		this.app.post(user, [
+			usersMiddleware.validateBodyFields,
 			usersMiddleware.validateRequiredUserBodyFields,
 			usersMiddleware.validateSameUsernameDoesntExist,
 			usersMiddleware.validateSameEmailDoesntExist,
@@ -56,6 +57,7 @@ export class UserRoutes extends RoutesConfig implements configureRoutes {
 
 		this.app.put(`${user}/:userId`, [
 			jwtMiddleware.validJWTNeeded,
+			usersMiddleware.validateBodyFields,
 			usersMiddleware.validateIdDoesExist,
 			usersMiddleware.validateRequiredUserBodyFields,
 			usersMiddleware.validateSameUsernameDoesntExist,

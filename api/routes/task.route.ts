@@ -46,6 +46,7 @@ export class TaskRoutes extends RoutesConfig implements configureRoutes {
 
 		this.app.post(task, [
 			jwtMiddleware.validJWTNeeded,
+			taskMiddleware.validateBodyFields,
 			taskMiddleware.validateRequiredTaskBodyFields,
 			taskMiddleware.validateSameNameDoesntExist,
 			taskController.createTask,
