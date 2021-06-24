@@ -39,7 +39,7 @@ const {
 	missingRefreshToken,
 } = ErrorMsgs;
 
-describe('auth.test', () => {
+describe('auth.refresh.post.test', () => {
 	describe(`POST ${user}`, () => {
 		it('should return 201 - Created', (done) => {
 			request(server)
@@ -81,96 +81,6 @@ describe('auth.test', () => {
 
 					jwt = { accessToken, refreshToken };
 					header.Authorization += accessToken;
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 400 - Bad Request - missing email', (done) => {
-			request(server)
-				.post(auth)
-				.send({ password })
-				.then(({ body, status }: Response) => {
-					const { error } = body;
-
-					expect(status).to.equal(BAD_REQUEST);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(error).to.be.an(STRING);
-					expect(error).to.be.equal(missingEmail);
-
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 400 - Bad Request - missing password', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email })
-				.then(({ body, status }: Response) => {
-					const { error } = body;
-
-					expect(status).to.equal(BAD_REQUEST);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(error).to.be.an(STRING);
-					expect(error).to.be.equal(missingPasswd);
-
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 400 - Bad Request - missing email and password', (done) => {
-			request(server)
-				.post(auth)
-				.send()
-				.then(({ body, status }: Response) => {
-					const { error } = body;
-
-					expect(status).to.equal(BAD_REQUEST);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(error).to.be.an(STRING);
-					expect(error).to.be.equal(missingEmailAndPasswd);
-
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 400 - Bad Request - invalid email', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email: invalidUserBody.email, password })
-				.then(({ body, status }: Response) => {
-					const { error } = body;
-
-					expect(status).to.equal(BAD_REQUEST);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(error).to.be.an(STRING);
-					expect(error).to.be.equal(invalidEmailPasswd);
-
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 400 - Bad Request - invalid password', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email, password: invalidUserBody.password })
-				.then(({ body, status }: Response) => {
-					const { error } = body;
-
-					expect(status).to.equal(BAD_REQUEST);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(error).to.be.an(STRING);
-					expect(error).to.be.equal(invalidEmailPasswd);
-
 					done();
 				})
 				.catch(done);
