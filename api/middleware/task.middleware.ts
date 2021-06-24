@@ -53,7 +53,7 @@ export class TasksMiddleware {
 			const errorFields = [];
 
 			if (!name) errorFields.push(' name');
-			if (!finished) errorFields.push(' finished');
+			if (typeof finished !== BOOLEAN) errorFields.push(' finished');
 
 			const lastField = errorFields.pop();
 			errorText += errorFields.length ? `s:${errorFields} and${lastField}` : `:${lastField}`;
