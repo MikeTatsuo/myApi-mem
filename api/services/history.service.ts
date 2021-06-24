@@ -1,12 +1,15 @@
 import { HistoryDao } from '../dao';
-import { CRUD, BaseObject, History } from '../interfaces';
+import { CRUD, BaseObject, History, Task } from '../interfaces';
+import { TasksService } from './task.service';
 
 export class HistoriesService implements CRUD<History> {
 	private static instance: HistoriesService;
 	historyDao: HistoryDao;
+	taskService: TasksService;
 
 	constructor() {
 		this.historyDao = HistoryDao.getInstance();
+		this.taskService = TasksService.getInstance();
 	}
 
 	static getInstance(): HistoriesService {
@@ -16,7 +19,11 @@ export class HistoriesService implements CRUD<History> {
 	}
 
 	create(resource: History): History {
-		return this.historyDao.add<History>(resource);
+		const createdHistory = this.historyDao.add<History>(resource);
+		const { tasks } = createdHistory;
+		createdHistory.tasks = tasks ?? [];
+
+		return createdHistory;
 	}
 
 	deleteById(resourceId: string): BaseObject {
@@ -26,7 +33,11 @@ export class HistoriesService implements CRUD<History> {
 	}
 
 	list(limit = 20, page = 1): History[] {
-		return this.historyDao.getList<History>(limit, page);
+		const historiesList = this.historyDao.getList<History>(limit, page);
+		return historiesList.map((history: History) => {
+			history.tasks = this.taskService.listByHistoryId(history.id);
+			return history;
+		});
 	}
 
 	patchById(resourceId: string, resource: History): History {
@@ -38,13 +49,22 @@ export class HistoriesService implements CRUD<History> {
 		if (finished) resource = { ...resource, finished };
 		if (tasks?.length) resource = { ...resource, tasks };
 
-		return this.historyDao.patchById<History>(historyId, resource);
+		const patchedHistory = this.historyDao.patchById<History>(historyId, resource);
+		patchedHistory.tasks = patchedHistory.tasks?.map((task: Task) =>
+			this.taskService.patchById(String(task.id), task)
+		);
+
+		return patchedHistory;
 	}
 
 	getById(resourceId: string): History {
 		const historyId = Number(resourceId);
 
-		return this.historyDao.getById<History>(historyId);
+		const history = this.historyDao.getById<History>(historyId);
+		const { tasks } = history;
+		history.tasks = tasks?.map((task: Task) => this.taskService.getById(String(task.id)));
+
+		return history;
 	}
 
 	getByParam(param: string, value: unknown): History {
@@ -56,14 +76,12 @@ export class HistoriesService implements CRUD<History> {
 		const { id, name, finished, tasks } = resource;
 		resource = { id: Number(id), name, finished, tasks };
 
-		return this.historyDao.putById<History>(historyId, resource);
-	}
+		const updatedHistory = this.historyDao.putById<History>(historyId, resource);
 
-	formatHistory(history: History): History {
-		const formattedHistory: History = { ...history };
+		updatedHistory.tasks = updatedHistory.tasks?.map((task: Task) =>
+			this.taskService.updateById(String(task.id), task)
+		);
 
-		if (!history.tasks?.length) delete formattedHistory.tasks;
-
-		return formattedHistory;
+		return updatedHistory;
 	}
 }
