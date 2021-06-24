@@ -1,15 +1,15 @@
 import { TaskDao } from '../dao';
 import { CRUD, BaseObject, Task, TaskTime } from '../interfaces';
-import { TimeTableService } from './time.table.service';
+import { TaskTimeService } from './task.time.service';
 
 export class TasksService implements CRUD<Task> {
 	private static instance: TasksService;
 	taskDao: TaskDao;
-	timeTableService: TimeTableService;
+	timeTableService: TaskTimeService;
 
 	constructor() {
 		this.taskDao = TaskDao.getInstance();
-		this.timeTableService = TimeTableService.getInstance();
+		this.timeTableService = TaskTimeService.getInstance();
 	}
 
 	static getInstance(): TasksService {
@@ -19,17 +19,10 @@ export class TasksService implements CRUD<Task> {
 	}
 
 	create(resource: Task): Task {
-		const { timeTable, ...task } = resource;
-		const newTask = this.taskDao.add<Task>(task);
-
-		if (timeTable?.length) {
-			newTask.timeTable = timeTable.map((taskTime: TaskTime) => {
-				taskTime.taskId = newTask.id;
-				return this.timeTableService.create(taskTime);
-			});
-		}
-
-		return newTask;
+		const createdTask = this.taskDao.add<Task>(resource);
+		const { timeTable } = createdTask;
+		createdTask.timeTable = timeTable ?? [];
+		return createdTask;
 	}
 
 	deleteById(resouceId: string): BaseObject {
@@ -100,15 +93,5 @@ export class TasksService implements CRUD<Task> {
 		}
 
 		return updatedTask;
-	}
-
-	formatTask(task: Task): Task {
-		const formattedTask: Task = { ...task };
-
-		if (!task.historyId) delete formattedTask.historyId;
-		if (!task.timeTable?.length) delete formattedTask.timeTable;
-		if (!task.observation) delete formattedTask.observation;
-
-		return formattedTask;
 	}
 }
