@@ -1,14 +1,7 @@
-import { EmptyObject, BaseObject } from '../interfaces';
+import { EmptyObject, BaseObject, GenericInMemoryDaoInterface } from '../interfaces';
 
-export class GenericInMemoryDao {
-	private static instance: GenericInMemoryDao;
+export class GenericInMemoryDao implements GenericInMemoryDaoInterface {
 	dao: any[] = [];
-
-	static getInstance(): GenericInMemoryDao {
-		if (!GenericInMemoryDao.instance) GenericInMemoryDao.instance = new GenericInMemoryDao();
-
-		return GenericInMemoryDao.instance;
-	}
 
 	add<T>(dao: T): T {
 		const daoId = this.dao.length + 1;
@@ -28,11 +21,11 @@ export class GenericInMemoryDao {
 		return this.dao.find((object: EmptyObject) => object[param] === value);
 	}
 
-	getList<T>(limit: number, page: number): T[] {
-		const end = limit * page;
-		const start = page === 1 ? 0 : end - limit - 1;
+	getList<T>(limit?: number, page?: number): T[] {
+		const end = limit && page ? limit * page : 0;
+		const start = page === 1 ? 0 : end - (limit ?? 0) - 1;
 
-		const returnList = this.dao.slice(start, end);
+		const returnList = limit && page ? this.dao.slice(start, end) : this.dao;
 
 		return returnList;
 	}

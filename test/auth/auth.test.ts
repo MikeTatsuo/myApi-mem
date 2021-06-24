@@ -24,7 +24,7 @@ let jwt = {
 
 const header = { Authorization: 'Bearer ' };
 const { username, email, password } = firstUserBody;
-const { auth, authRefresh, users } = Endpoints;
+const { auth, authRefresh, user } = Endpoints;
 const { OBJECT, NUMBER, STRING } = EnumOfTypes;
 const { BAD_REQUEST, CREATED, FORBIDDEN, OK, UNAUTHORIZED } = HttpCodes;
 const {
@@ -40,10 +40,10 @@ const {
 } = ErrorMsgs;
 
 describe('auth.test', () => {
-	describe(`POST ${users}`, () => {
+	describe(`POST ${user}`, () => {
 		it('should return 201 - Created', (done) => {
 			request(server)
-				.post(users)
+				.post(user)
 				.send(firstUserBody)
 				.then(({ body, status }: Response) => {
 					const { id } = body;
@@ -300,16 +300,16 @@ describe('auth.test', () => {
 		});
 	});
 
-	describe(`DELETE ${users}/:userId`, () => {
+	describe(`DELETE ${user}/:userId`, () => {
 		it('should return 200 - Ok', (done) => {
 			request(server)
-				.delete(`${users}/${firstUserId}`)
+				.delete(`${user}/${firstUserId}`)
 				.set(header)
 				.send()
 				.then(({ body, status }: Response) => {
 					const { id } = body;
 
-					expect(status).to.be.equals(OK);
+					expect(status).to.equal(OK);
 					expect(body).to.not.be.empty;
 					expect(body).to.be.an(OBJECT);
 					expect(id).to.be.an(NUMBER);
