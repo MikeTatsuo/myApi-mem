@@ -5,11 +5,11 @@ import { TaskTimeService } from './task.time.service';
 export class TasksService implements CRUD<Task> {
 	private static instance: TasksService;
 	taskDao: TaskDao;
-	timeTableService: TaskTimeService;
+	taskTimeService: TaskTimeService;
 
 	constructor() {
 		this.taskDao = TaskDao.getInstance();
-		this.timeTableService = TaskTimeService.getInstance();
+		this.taskTimeService = TaskTimeService.getInstance();
 	}
 
 	static getInstance(): TasksService {
@@ -34,7 +34,7 @@ export class TasksService implements CRUD<Task> {
 	list(limit = 20, page = 1): Task[] {
 		const taskList = this.taskDao.getList<Task>(limit, page);
 		return taskList.map((task: Task) => {
-			task.timeTable = this.timeTableService.listByTaskId(task.id);
+			task.timeTable = this.taskTimeService.listByTaskId(task.id);
 			return task;
 		});
 	}
@@ -59,7 +59,7 @@ export class TasksService implements CRUD<Task> {
 		if (timeTable?.length) {
 			pachedTask.timeTable = timeTable.map((taskTime: TaskTime) => {
 				taskTime.taskId = pachedTask.id;
-				return this.timeTableService.patchById(String(taskTime.id), taskTime);
+				return this.taskTimeService.patchById(String(taskTime.id), taskTime);
 			});
 		}
 
@@ -69,7 +69,7 @@ export class TasksService implements CRUD<Task> {
 	getById(resourceId: string): Task {
 		const taskId = Number(resourceId);
 		const task = this.taskDao.getById<Task>(taskId);
-		task.timeTable = this.timeTableService.listByTaskId(task.id);
+		task.timeTable = this.taskTimeService.listByTaskId(task.id);
 
 		return task;
 	}
@@ -88,7 +88,7 @@ export class TasksService implements CRUD<Task> {
 		if (timeTable?.length) {
 			updatedTask.timeTable = timeTable.map((taskTime: TaskTime) => {
 				taskTime.taskId = updatedTask.id;
-				return this.timeTableService.updateById(String(taskTime.id), taskTime);
+				return this.taskTimeService.updateById(String(taskTime.id), taskTime);
 			});
 		}
 
