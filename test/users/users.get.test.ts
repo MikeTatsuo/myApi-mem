@@ -15,7 +15,7 @@ const { ARRAY, NUMBER, OBJECT, STRING } = EnumOfTypes;
 const { users, user, auth } = Endpoints;
 const { CREATED, OK } = HttpCodes;
 
-describe('users.test', () => {
+describe('users.get.test', () => {
 	describe(`POST ${user}`, () => {
 		it('should return 201 - Created', (done) => {
 			request(server)
@@ -117,7 +117,7 @@ describe('users.test', () => {
 		});
 	});
 
-	describe(`GET ${user}`, () => {
+	describe(`GET ${users}`, () => {
 		it('should return 200 - Ok - 2 Users', (done) => {
 			request(server)
 				.get(users)
