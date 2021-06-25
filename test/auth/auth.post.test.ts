@@ -17,77 +17,47 @@ const invalidUserBody = {
 	password: 'invalidPassword',
 };
 
-let jwt = {
-	accessToken: '',
-	refreshToken: '',
-};
-
 const header = { Authorization: 'Bearer ' };
-const { username, email, password } = firstUserBody;
-const { auth, authRefresh, user } = Endpoints;
+const { email, password } = firstUserBody;
+const { auth, user } = Endpoints;
 const { OBJECT, NUMBER, STRING } = EnumOfTypes;
-const { BAD_REQUEST, CREATED, FORBIDDEN, OK, UNAUTHORIZED } = HttpCodes;
-const {
-	authRequired,
-	invalidAuthType,
-	invalidEmailPasswd,
-	invalidRefreshToken,
-	invalidSignature,
-	missingEmail,
-	missingPasswd,
-	missingEmailAndPasswd,
-	missingRefreshToken,
-} = ErrorMsgs;
+const { BAD_REQUEST, CREATED, OK } = HttpCodes;
+const { invalidEmailPasswd, missingEmail, missingPasswd, missingEmailAndPasswd } = ErrorMsgs;
+const req = request(server);
 
 describe('auth.post.test', () => {
-	describe(`POST ${user}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(user)
-				.send(firstUserBody)
-				.then(({ body, status }: Response) => {
-					const { id } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(username);
-					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(email);
-					expect(body).not.haveOwnProperty('password');
-
-					firstUserId = id;
-					done();
-				})
-				.catch(done);
-		});
-	});
-
 	describe(`POST ${auth}`, () => {
 		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email, password })
-				.then(({ body, status }: Response) => {
-					const { accessToken, refreshToken } = body;
+			req
+				.post(user)
+				.send(firstUserBody)
+				.then(({ body }: Response) => {
+					const { id } = body;
+					firstUserId = id;
 
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(accessToken).to.be.an(STRING);
-					expect(refreshToken).to.be.an(STRING);
+					req
+						.post(auth)
+						.send({ email, password })
+						.then(({ body, status }: Response) => {
+							const { accessToken, refreshToken } = body;
 
-					jwt = { accessToken, refreshToken };
-					header.Authorization += accessToken;
-					done();
+							expect(status).to.equal(CREATED);
+							expect(body).not.to.be.empty;
+							expect(body).to.be.an(OBJECT);
+							expect(accessToken).to.be.an(STRING);
+							expect(refreshToken).to.be.an(STRING);
+
+							header.Authorization += accessToken;
+
+							done();
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
 
 		it('should return 400 - Bad Request - missing email', (done) => {
-			request(server)
+			req
 				.post(auth)
 				.send({ password })
 				.then(({ body, status }: Response) => {
@@ -105,7 +75,7 @@ describe('auth.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing password', (done) => {
-			request(server)
+			req
 				.post(auth)
 				.send({ email })
 				.then(({ body, status }: Response) => {
@@ -123,7 +93,7 @@ describe('auth.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing email and password', (done) => {
-			request(server)
+			req
 				.post(auth)
 				.send()
 				.then(({ body, status }: Response) => {
@@ -141,7 +111,7 @@ describe('auth.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - invalid email', (done) => {
-			request(server)
+			req
 				.post(auth)
 				.send({ email: invalidUserBody.email, password })
 				.then(({ body, status }: Response) => {
@@ -159,7 +129,7 @@ describe('auth.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - invalid password', (done) => {
-			request(server)
+			req
 				.post(auth)
 				.send({ email, password: invalidUserBody.password })
 				.then(({ body, status }: Response) => {
@@ -171,28 +141,22 @@ describe('auth.post.test', () => {
 					expect(error).to.be.an(STRING);
 					expect(error).to.be.equal(invalidEmailPasswd);
 
-					done();
-				})
-				.catch(done);
-		});
-	});
+					req
+						.delete(`${user}/${firstUserId}`)
+						.set(header)
+						.send()
+						.then(({ body, status }: Response) => {
+							const { id } = body;
 
-	describe(`DELETE ${user}/:userId`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
-				.delete(`${user}/${firstUserId}`)
-				.set(header)
-				.send()
-				.then(({ body, status }: Response) => {
-					const { id } = body;
+							expect(status).to.equal(OK);
+							expect(body).to.not.be.empty;
+							expect(body).to.be.an(OBJECT);
+							expect(id).to.be.an(NUMBER);
+							expect(id).to.be.equal(firstUserId);
 
-					expect(status).to.equal(OK);
-					expect(body).to.not.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(firstUserId);
-
-					done();
+							done();
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
