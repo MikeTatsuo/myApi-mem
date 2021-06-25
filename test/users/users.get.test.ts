@@ -10,189 +10,113 @@ let secondUserId = 0;
 
 const header = { Authorization: 'Bearer ' };
 const { firstUser, secondUser } = UserMock;
-const { username, email, password } = firstUser;
-const { ARRAY, NUMBER, OBJECT, STRING } = EnumOfTypes;
+const { email, password } = firstUser;
+const { ARRAY, NUMBER, STRING } = EnumOfTypes;
 const { users, user, auth } = Endpoints;
-const { CREATED, OK } = HttpCodes;
+const { OK } = HttpCodes;
+const req = request(server);
 
 describe('users.get.test', () => {
-	describe(`POST ${user}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
+	describe(`GET ${users}`, () => {
+		it('should return 200 - Ok', (done) => {
+			req
 				.post(user)
 				.send(firstUser)
-				.then(({ status, body }: Response) => {
+				.then(({ body }: Response) => {
 					const { id } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(username);
-					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(email);
-					expect(body).not.haveOwnProperty('password');
-
 					firstUserId = id;
 
-					done();
+					req
+						.post(auth)
+						.send({ email, password })
+						.then(({ body }: Response) => {
+							const { accessToken } = body;
+							header.Authorization += accessToken;
+
+							req
+								.get(users)
+								.set(header)
+								.send()
+								.then((res: Response) => {
+									const { status, body } = res;
+
+									expect(status).to.equal(OK);
+									expect(body).not.to.be.empty;
+									expect(body).to.be.an(ARRAY);
+
+									const lastUser = body[body.length - 1];
+									const { id, username, email } = lastUser;
+
+									expect(id).to.be.an(NUMBER);
+									expect(username).to.be.an(STRING);
+									expect(username).to.be.equal(firstUser.username);
+									expect(email).to.be.an(STRING);
+									expect(email).to.be.equal(firstUser.email);
+									expect(lastUser).not.haveOwnProperty('password');
+
+									done();
+								})
+								.catch(done);
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
-	});
 
-	describe(`POST ${auth}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email, password })
-				.then(({ body, status }: Response) => {
-					const { accessToken } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(accessToken).to.be.an(STRING);
-
-					header.Authorization += accessToken;
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`GET ${users}`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
-				.get(users)
-				.set(header)
-				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-
-					expect(status).to.equal(OK);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(ARRAY);
-
-					const popedUser = body.pop();
-					const { id, username, email } = popedUser;
-
-					expect(id).to.be.an(NUMBER);
-					expect(username).to.be.an(STRING);
-					expect(username).to.be.equal(firstUser.username);
-					expect(email).to.be.an(STRING);
-					expect(email).to.be.equal(firstUser.email);
-					expect(popedUser).not.haveOwnProperty('password');
-
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`POST ${user}`, () => {
-		it('should return 201 - Created - 2nd User', (done) => {
-			request(server)
+		it('should return 200 - Ok - 2 Users', (done) => {
+			req
 				.post(user)
 				.send(secondUser)
-				.then(({ status, body }: Response) => {
+				.then(({ body }: Response) => {
 					const { id } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(secondUser.username);
-					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(secondUser.email);
-					expect(body).not.haveOwnProperty('password');
-
 					secondUserId = id;
 
-					done();
+					req
+						.get(users)
+						.set(header)
+						.send()
+						.then((res: Response) => {
+							const { status, body } = res;
+
+							expect(status).to.equal(OK);
+							expect(body).not.to.be.empty;
+							expect(body).to.be.an(ARRAY);
+							expect(body.length).to.be.equal(2);
+
+							done();
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
-	});
 
-	describe(`GET ${users}`, () => {
-		it('should return 200 - Ok - 2 Users', (done) => {
-			request(server)
-				.get(users)
-				.set(header)
-				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-
-					expect(status).to.equal(OK);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(ARRAY);
-					expect(body.length).to.be.equal(2);
-
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`DELETE ${user}/:userId`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
+		it('should return 200 - Ok - and body to be empty', (done) => {
+			req
 				.delete(`${user}/${firstUserId}`)
 				.set(header)
 				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-					const { id } = body;
+				.then(() => {
+					req
+						.delete(`${user}/${secondUserId}`)
+						.set(header)
+						.send()
+						.then(() => {
+							req
+								.get(users)
+								.set(header)
+								.send()
+								.then((res: Response) => {
+									const { status, body } = res;
 
-					expect(status).to.equal(OK);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(firstUserId);
+									expect(status).to.equal(OK);
+									expect(body).to.be.an(ARRAY);
+									expect(body).to.be.empty;
 
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 200 - Ok - deleting second user', (done) => {
-			request(server)
-				.delete(`${user}/${secondUserId}`)
-				.set(header)
-				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-					const { id } = body;
-
-					expect(status).to.equal(OK);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(secondUserId);
-
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`GET ${users}`, () => {
-		it('should return 200 - Ok - and body to be empty', (done) => {
-			request(server)
-				.get(users)
-				.set(header)
-				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-
-					expect(status).to.equal(OK);
-					expect(body).to.be.an(ARRAY);
-					expect(body).to.be.empty;
-
-					done();
+									done();
+								})
+								.catch(done);
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
