@@ -10,9 +10,9 @@ let firstUserId = 0;
 const header = { Authorization: 'Bearer ' };
 const { firstUser, secondUser } = UserMock;
 const { username, email, password } = firstUser;
-const { ARRAY, NUMBER, OBJECT, STRING } = EnumOfTypes;
-const { auth, user, users } = Endpoints;
-const { BAD_REQUEST, CREATED, OK } = HttpCodes;
+const { NUMBER, OBJECT, STRING } = EnumOfTypes;
+const { auth, user } = Endpoints;
+const { BAD_REQUEST, CREATED } = HttpCodes;
 const {
 	emailExist,
 	invalidBody,
@@ -24,11 +24,12 @@ const {
 	missingUsernameAndPasswd,
 	usernameExist,
 } = ErrorMsgs;
+const req = request(server);
 
 describe('user.post.test', () => {
 	describe(`POST ${user}`, () => {
 		it('should return 201 - Created', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send(firstUser)
 				.then(({ status, body }: Response) => {
@@ -46,13 +47,22 @@ describe('user.post.test', () => {
 
 					firstUserId = id;
 
-					done();
+					req
+						.post(auth)
+						.send({ email, password })
+						.then(({ body }: Response) => {
+							const { accessToken } = body;
+
+							header.Authorization += accessToken;
+							done();
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
 
 		it('should return 400 - Bad Request - username exists', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ username, email: secondUser.email, password: secondUser.password })
 				.then(({ status, body }: Response) => {
@@ -70,7 +80,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - email exists', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ username: secondUser.username, email, password: secondUser.password })
 				.then(({ status, body }: Response) => {
@@ -88,7 +98,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing username', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ email, password })
 				.then(({ status, body }: Response) => {
@@ -106,7 +116,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing email', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ username, password })
 				.then(({ status, body }: Response) => {
@@ -124,7 +134,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing password', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ email, username })
 				.then(({ status, body }: Response) => {
@@ -142,7 +152,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing username and email', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ password })
 				.then(({ status, body }: Response) => {
@@ -160,7 +170,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing username and password', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ email })
 				.then(({ status, body }: Response) => {
@@ -178,7 +188,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - missing email and password', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send({ username })
 				.then(({ status, body }: Response) => {
@@ -196,7 +206,7 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - empty body', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send()
 				.then(({ status, body }: Response) => {
@@ -214,81 +224,26 @@ describe('user.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - invalid body request', (done) => {
-			request(server)
-				.post(user)
-				.send({ invalid: 'invalid' })
-				.then(({ status, body }: Response) => {
-					const { error } = body;
-
-					expect(status).to.equal(BAD_REQUEST);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(error).to.be.an(STRING);
-					expect(error).to.be.equal(invalidBody);
-
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`POST ${auth}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email, password })
-				.then(({ body, status }: Response) => {
-					const { accessToken, refreshToken } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(accessToken).to.be.an(STRING);
-					expect(refreshToken).to.be.an(STRING);
-
-					header.Authorization += accessToken;
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`DELETE ${user}/:userId`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
+			req
 				.delete(`${user}/${firstUserId}`)
 				.set(header)
 				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-					const { id } = body;
+				.then(() => {
+					req
+						.post(user)
+						.send({ invalid: 'invalid' })
+						.then(({ status, body }: Response) => {
+							const { error } = body;
 
-					expect(status).to.equal(OK);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(firstUserId);
+							expect(status).to.equal(BAD_REQUEST);
+							expect(body).not.to.be.empty;
+							expect(body).to.be.an(OBJECT);
+							expect(error).to.be.an(STRING);
+							expect(error).to.be.equal(invalidBody);
 
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`GET ${users}`, () => {
-		it('should return 200 - Ok - and body to be empty', (done) => {
-			request(server)
-				.get(users)
-				.set(header)
-				.send()
-				.then((res: Response) => {
-					const { status, body } = res;
-
-					expect(status).to.equal(OK);
-					expect(body).to.be.an(ARRAY);
-					expect(body).to.be.empty;
-
-					done();
+							done();
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
