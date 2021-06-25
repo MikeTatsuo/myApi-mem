@@ -12,86 +12,69 @@ const firstUserBody = {
 	password: 'Password1',
 };
 
-const invalidUserBody = {
-	email: 'invalid@user.com',
-	password: 'invalidPassword',
-};
-
 let jwt = {
 	accessToken: '',
 	refreshToken: '',
 };
 
 const header = { Authorization: 'Bearer ' };
-const { username, email, password } = firstUserBody;
+const { email, password } = firstUserBody;
 const { auth, authRefresh, user } = Endpoints;
-const { OBJECT, NUMBER, STRING } = EnumOfTypes;
-const { BAD_REQUEST, CREATED, FORBIDDEN, OK, UNAUTHORIZED } = HttpCodes;
+const { OBJECT, STRING } = EnumOfTypes;
+const { BAD_REQUEST, CREATED, FORBIDDEN, UNAUTHORIZED } = HttpCodes;
 const {
 	authRequired,
 	invalidAuthType,
-	invalidEmailPasswd,
 	invalidRefreshToken,
 	invalidSignature,
-	missingEmail,
-	missingPasswd,
-	missingEmailAndPasswd,
 	missingRefreshToken,
 } = ErrorMsgs;
+const req = request(server);
 
 describe('auth.refresh.post.test', () => {
-	describe(`POST ${user}`, () => {
+	describe(`POST ${auth}${authRefresh}`, () => {
 		it('should return 201 - Created', (done) => {
-			request(server)
+			req
 				.post(user)
 				.send(firstUserBody)
-				.then(({ body, status }: Response) => {
+				.then(({ body }: Response) => {
 					const { id } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(username);
-					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(email);
-					expect(body).not.haveOwnProperty('password');
-
 					firstUserId = id;
-					done();
+
+					req
+						.post(auth)
+						.send({ email, password })
+						.then(({ body }: Response) => {
+							const { accessToken, refreshToken } = body;
+							jwt = { accessToken, refreshToken };
+							header.Authorization += accessToken;
+
+							req
+								.post(`${auth}${authRefresh}`)
+								.set(header)
+								.send({ refreshToken })
+								.then(({ body, status }: Response) => {
+									expect(status).to.equal(CREATED);
+									expect(body).not.to.be.empty;
+									expect(body).to.be.an(OBJECT);
+									expect(body.accessToken).to.be.an(STRING);
+									expect(body.refreshToken).to.be.an(STRING);
+
+									jwt = { accessToken: body.accessToken, refreshToken: body.refreshToken };
+									header.Authorization = `Bearer ${body.accessToken}`;
+
+									done();
+								})
+								.catch(done);
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
-	});
 
-	describe(`POST ${auth}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email, password })
-				.then(({ body, status }: Response) => {
-					const { accessToken, refreshToken } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(accessToken).to.be.an(STRING);
-					expect(refreshToken).to.be.an(STRING);
-
-					jwt = { accessToken, refreshToken };
-					header.Authorization += accessToken;
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`POST ${auth}${authRefresh}`, () => {
 		it('should return 403 - Forbidden - invalid JWT', (done) => {
 			const { refreshToken } = jwt;
-
-			request(server)
+			req
 				.post(`${auth}${authRefresh}`)
 				.set({ Authorization: `${header.Authorization}123` })
 				.send({ refreshToken })
@@ -112,7 +95,7 @@ describe('auth.refresh.post.test', () => {
 		it('should return 401 - Unauthorized - no JWT set', (done) => {
 			const { refreshToken } = jwt;
 
-			request(server)
+			req
 				.post(`${auth}${authRefresh}`)
 				.send({ refreshToken })
 				.then(({ body, status }: Response) => {
@@ -131,7 +114,7 @@ describe('auth.refresh.post.test', () => {
 
 		it('should return 401 - Unauthorized - invalid auth type', (done) => {
 			const { refreshToken } = jwt;
-			request(server)
+			req
 				.post(`${auth}${authRefresh}`)
 				.set({ Authorization: `WrongAuth ${jwt.accessToken}` })
 				.send({ refreshToken })
@@ -150,7 +133,7 @@ describe('auth.refresh.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - invalid refreshToken', (done) => {
-			request(server)
+			req
 				.post(`${auth}${authRefresh}`)
 				.set(header)
 				.send({ refreshToken: '123' })
@@ -169,7 +152,7 @@ describe('auth.refresh.post.test', () => {
 		});
 
 		it('should return 400 - Bad Request - no refreshToken', (done) => {
-			request(server)
+			req
 				.post(`${auth}${authRefresh}`)
 				.set(header)
 				.send()
@@ -182,50 +165,14 @@ describe('auth.refresh.post.test', () => {
 					expect(error).to.be.an(STRING);
 					expect(error).to.be.equal(missingRefreshToken);
 
-					done();
-				})
-				.catch(done);
-		});
-
-		it('should return 201 - Created', (done) => {
-			const { refreshToken } = jwt;
-
-			request(server)
-				.post(`${auth}${authRefresh}`)
-				.set(header)
-				.send({ refreshToken })
-				.then(({ body, status }: Response) => {
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(body.accessToken).to.be.an(STRING);
-					expect(body.refreshToken).to.be.an(STRING);
-
-					jwt = { accessToken: body.accessToken, refreshToken: body.refreshToken };
-					header.Authorization = `Bearer ${body.accessToken}`;
-
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`DELETE ${user}/:userId`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
-				.delete(`${user}/${firstUserId}`)
-				.set(header)
-				.send()
-				.then(({ body, status }: Response) => {
-					const { id } = body;
-
-					expect(status).to.equal(OK);
-					expect(body).to.not.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(firstUserId);
-
-					done();
+					req
+						.delete(`${user}/${firstUserId}`)
+						.set(header)
+						.send()
+						.then(() => {
+							done();
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
