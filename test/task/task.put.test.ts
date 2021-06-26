@@ -5,12 +5,16 @@ import { Endpoints, ErrorMsgs, HttpCodes } from '../../api/common';
 import { EnumOfTypes } from '../../api/interfaces';
 import { TaskMock, UserMock } from '../../mock';
 
+let firstUserId: number;
+let firstTaskId: number;
+let secondTaskId: number;
+
 const header = { Authorization: 'Bearer ' };
 const { auth, task, user } = Endpoints;
 const { firstUser } = UserMock;
-const { BAD_REQUEST, CREATED, FORBIDDEN, OK, UNAUTHORIZED } = HttpCodes;
-const { ARRAY, BOOLEAN, NUMBER, OBJECT, STRING } = EnumOfTypes;
-const { username, email, password } = firstUser;
+const { BAD_REQUEST, FORBIDDEN, NOT_FOUND, OK, UNAUTHORIZED } = HttpCodes;
+const { BOOLEAN, NUMBER, OBJECT, STRING } = EnumOfTypes;
+const { email, password } = firstUser;
 const { firstTask, secondTask, thirdTask } = TaskMock;
 const {
 	authRequired,
@@ -19,138 +23,275 @@ const {
 	missingFinished,
 	missingName,
 	missingNameAndFinished,
+	missingParamId,
 	taskExist,
+	taskNotFound,
 } = ErrorMsgs;
-const { name, finished, historyId, observation } = firstTask;
-
-let firstUserId: number;
-let firstTaskId: number;
-
-beforeEach(() => {
-	class MockDate extends Date {
-		constructor(date: Date) {
-			super(date);
-		}
-	}
-
-	global.Date = MockDate as DateConstructor;
-});
+const { name, finished, historyId, observation } = thirdTask;
+const req = request(server);
 
 describe('task.put.test', () => {
-	describe(`POST ${user}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
+	describe(`PUT ${task}`, () => {
+		it('should return 200 - OK', (done) => {
+			req
 				.post(user)
 				.send(firstUser)
-				.then(({ status, body }: Response) => {
+				.then(({ body }: Response) => {
 					const { id } = body;
-
-					expect(status).to.equal(CREATED);
-					expect(body).not.to.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(body.username).to.be.an(STRING);
-					expect(body.username).to.be.equal(username);
-					expect(body.email).to.be.an(STRING);
-					expect(body.email).to.be.equal(email);
-					expect(body).not.haveOwnProperty('password');
-
 					firstUserId = id;
 
-					done();
+					req
+						.post(auth)
+						.send({ email, password })
+						.then(({ body }: Response) => {
+							const { accessToken } = body;
+							header.Authorization += accessToken;
+
+							req
+								.post(task)
+								.set(header)
+								.send(firstTask)
+								.then(({ body }: Response) => {
+									const { id } = body;
+									firstTaskId = id;
+
+									req
+										.post(task)
+										.set(header)
+										.send(secondTask)
+										.then(({ body }: Response) => {
+											const { id } = body;
+											secondTaskId = id;
+
+											req
+												.put(`${task}/${firstTaskId}`)
+												.set(header)
+												.send(thirdTask)
+												.then(({ body, status }: Response) => {
+													const { id } = body;
+
+													expect(status).to.equal(OK);
+													expect(body).not.to.be.empty;
+													expect(body).to.be.an(OBJECT);
+													expect(id).to.be.an(NUMBER);
+													expect(id).to.be.equal(firstTaskId);
+													expect(body.name).to.be.an(STRING);
+													expect(body.name).to.be.equal(name);
+													expect(body.finished).to.be.an(BOOLEAN);
+													expect(body.finished).to.be.equal(finished);
+													expect(body.historyId).to.be.an(NUMBER);
+													expect(body.historyId).to.be.equal(historyId);
+													expect(body.observation).to.be.an(STRING);
+													expect(body.observation).to.be.equal(observation);
+
+													done();
+												})
+												.catch(done);
+										})
+										.catch(done);
+								})
+								.catch(done);
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
-	});
 
-	describe(`POST ${auth}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(auth)
-				.send({ email, password })
+		it('should return 403 - Forbidden - invalid JWT', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.set({ authorization: `${header.Authorization}123` })
+				.send(firstTask)
 				.then(({ body, status }: Response) => {
-					const { accessToken } = body;
+					const { error } = body;
 
-					expect(status).to.equal(CREATED);
+					expect(status).to.equal(FORBIDDEN);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
-					expect(accessToken).to.be.an(STRING);
-
-					header.Authorization += accessToken;
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(invalidSignature);
 
 					done();
 				})
 				.catch(done);
 		});
-	});
 
-	describe(`POST ${task}`, () => {
-		it('should return 201 - Created', (done) => {
-			request(server)
-				.post(task)
+		it('should return 401 - Unauthorized - no JWT set', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.send(firstTask)
+				.then(({ body, status }: Response) => {
+					const { error } = body;
+
+					expect(status).to.equal(UNAUTHORIZED);
+					expect(body).not.to.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(authRequired);
+
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should return 400 - Bad Request - missing name', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.set(header)
+				.send({
+					finished: firstTask.finished,
+					historyId: firstTask.historyId,
+					observation: firstTask.observation,
+				})
+				.then(({ body, status }: Response) => {
+					const { error } = body;
+
+					expect(status).to.equal(BAD_REQUEST);
+					expect(body).not.to.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(missingName);
+
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should return 400 - Bad Request - missing finished', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.set(header)
+				.send({
+					name: firstTask.name,
+					historyId: firstTask.historyId,
+					observation: firstTask.observation,
+				})
+				.then(({ body, status }: Response) => {
+					const { error } = body;
+
+					expect(status).to.equal(BAD_REQUEST);
+					expect(body).not.to.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(missingFinished);
+
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should return 400 - Bad Request - missing name and finished', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.set(header)
+				.send({ historyId: firstTask.historyId, observation: firstTask.observation })
+				.then(({ body, status }: Response) => {
+					const { error } = body;
+
+					expect(status).to.equal(BAD_REQUEST);
+					expect(body).not.to.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(missingNameAndFinished);
+
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should return 400 - Bad Request - empty body', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.set(header)
+				.send()
+				.then(({ body, status }: Response) => {
+					const { error } = body;
+
+					expect(status).to.equal(BAD_REQUEST);
+					expect(body).not.to.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(invalidBody);
+
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should return 400 - Bad Request - name exists', (done) => {
+			req
+				.put(`${task}/${firstTaskId}`)
+				.set(header)
+				.send({ ...firstTask, name: secondTask.name })
+				.then(({ body, status }: Response) => {
+					const { error } = body;
+
+					expect(status).to.equal(BAD_REQUEST);
+					expect(body).not.to.be.empty;
+					expect(body).to.be.an(OBJECT);
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(taskExist);
+
+					done();
+				})
+				.catch(done);
+		});
+
+		it('should return 400 - Bad Request - missing param id', (done) => {
+			req
+				.put(task)
 				.set(header)
 				.send(firstTask)
 				.then(({ body, status }: Response) => {
-					const { id, finished, name, observation, timeTable } = body;
+					const { error } = body;
 
-					expect(status).to.equal(CREATED);
+					expect(status).to.equal(BAD_REQUEST);
 					expect(body).not.to.be.empty;
 					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(finished).to.be.an(BOOLEAN);
-					expect(finished).to.be.equal(firstTask.finished);
-					expect(name).to.be.an(STRING);
-					expect(name).to.be.equal(firstTask.name);
-					expect(observation).to.be.an(STRING);
-					expect(observation).to.be.equal(firstTask.observation);
-					expect(timeTable).to.be.an(ARRAY);
-					expect(timeTable.length).to.be.equal(0);
-
-					firstTaskId = id;
+					expect(error).to.be.an(STRING);
+					expect(error).to.be.equal(missingParamId);
 
 					done();
 				})
 				.catch(done);
 		});
-	});
 
-	describe(`DELETE ${task}/:taskId`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
+		it('should return 404 - Not Found - task not found', (done) => {
+			req
 				.delete(`${task}/${firstTaskId}`)
 				.set(header)
 				.send()
-				.then(({ body, status }: Response) => {
-					const { id } = body;
+				.then(() => {
+					req
+						.put(`${task}/${firstTaskId}`)
+						.set(header)
+						.send(firstTask)
+						.then(({ body, status }: Response) => {
+							const { error } = body;
 
-					expect(status).to.equal(OK);
-					expect(body).to.not.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(firstTaskId);
+							expect(status).to.equal(NOT_FOUND);
+							expect(body).not.to.be.empty;
+							expect(body).to.be.an(OBJECT);
+							expect(error).to.be.an(STRING);
+							expect(error).to.be.equal(taskNotFound);
 
-					done();
-				})
-				.catch(done);
-		});
-	});
-
-	describe(`DELETE ${user}/:userId`, () => {
-		it('should return 200 - Ok', (done) => {
-			request(server)
-				.delete(`${user}/${firstUserId}`)
-				.set(header)
-				.send()
-				.then(({ body, status }: Response) => {
-					const { id } = body;
-
-					expect(status).to.equal(OK);
-					expect(body).to.not.be.empty;
-					expect(body).to.be.an(OBJECT);
-					expect(id).to.be.an(NUMBER);
-					expect(id).to.be.equal(firstUserId);
-
-					done();
+							req
+								.delete(`${task}/${secondTaskId}`)
+								.set(header)
+								.send()
+								.then(() => {
+									req
+										.delete(`${user}/${firstUserId}`)
+										.set(header)
+										.send()
+										.then(() => {
+											done();
+										})
+										.catch(done);
+								})
+								.catch(done);
+						})
+						.catch(done);
 				})
 				.catch(done);
 		});
