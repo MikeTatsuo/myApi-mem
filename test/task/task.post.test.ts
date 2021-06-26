@@ -27,16 +27,6 @@ const req = request(server);
 let firstUserId: number;
 let firstTaskId: number;
 
-beforeEach(() => {
-	class MockDate extends Date {
-		constructor(date: Date) {
-			super(date);
-		}
-	}
-
-	global.Date = MockDate as DateConstructor;
-});
-
 describe('task.post.test', () => {
 	describe(`POST ${task}`, () => {
 		it('should return 201 - Created', (done) => {
