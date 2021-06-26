@@ -57,6 +57,7 @@ export class TaskRoutes extends RoutesConfig implements configureRoutes {
 		this.app.put(`${task}/:taskId`, [
 			jwtMiddleware.validJWTNeeded,
 			taskMiddleware.validateIdDoesExist,
+			taskMiddleware.validateBodyFields,
 			taskMiddleware.validateRequiredTaskBodyFields,
 			taskMiddleware.validateSameNameDoesntExist,
 			taskMiddleware.extractTaskId,

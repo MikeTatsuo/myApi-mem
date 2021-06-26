@@ -37,9 +37,9 @@ export class TasksMiddleware {
 	}
 
 	validateBodyFields({ body }: Request, res: Response, next: NextFunction): void {
-		const { finished, name, observation, timeTable } = body;
+		const { finished, name, historyId, observation } = body;
 
-		if (name || finished || observation || timeTable) next();
+		if (name || typeof finished === BOOLEAN || historyId || observation) next();
 		else res.status(BAD_REQUEST).send(new ErrorMsg(invalidBody));
 	}
 
