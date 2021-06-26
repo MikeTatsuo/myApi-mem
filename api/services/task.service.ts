@@ -69,7 +69,7 @@ export class TasksService implements CRUD<Task> {
 	getById(resourceId: string): Task {
 		const taskId = Number(resourceId);
 		const task = this.taskDao.getById<Task>(taskId);
-		task.timeTable = this.taskTimeService.listByTaskId(task.id);
+		if (task) task.timeTable = this.taskTimeService.listByTaskId(task.id);
 
 		return task;
 	}
