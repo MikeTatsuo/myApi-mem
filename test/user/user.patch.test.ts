@@ -7,14 +7,13 @@ import { UserMock } from '../../mock';
 
 let firstUserId = 0;
 let secondUserId = 0;
-const invalidUserId = 0;
 
 const header = { Authorization: 'Bearer ' };
 const { firstUser, secondUser, thirdUser } = UserMock;
 const { username, email, password } = firstUser;
-const { ARRAY, NUMBER, OBJECT, STRING } = EnumOfTypes;
-const { auth, user, users } = Endpoints;
-const { BAD_REQUEST, CREATED, FORBIDDEN, NOT_FOUND, OK, UNAUTHORIZED } = HttpCodes;
+const { NUMBER, OBJECT, STRING } = EnumOfTypes;
+const { auth, user } = Endpoints;
+const { BAD_REQUEST, FORBIDDEN, NOT_FOUND, OK, UNAUTHORIZED } = HttpCodes;
 const {
 	authRequired,
 	emailExist,
